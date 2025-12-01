@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+</head>
+
+<body>
+
+  <!-- NavBar Start -->
+  <nav class="navbar navbar-expand-lg sticky-top" id="mainNavbar">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><img src="{{ url_for('static', filename='assets/logo.png') }}" ... width="50px" height="50px"></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+        aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end
+      " id="navbarNavDropdown">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link fw-bold  mx-3 active" href="{{ url_for('index') }}">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link fw-bold mx-3" href="{{ url_for('recommendations') }}">Our AI</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link fw-bold mx-3" href="{{ url_for('about_us') }}">About Us</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link fw-bold mx-3" href="{{ url_for('contact_us') }}">Contact Us</a>
+          </li>
+
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <!-- NavBar End -->
+
+
+
+  <!-- Video Banner  -->
+  <div class="video-banner" data-aos="fade-up">
+    <video playsinline autoplay muted loop>
+      <source src="{{ url_for('static', filename='assets/bannervideo.crdownload') }}">
+    </video>
+
+    <div class="video-caption text-center">
+      <h1 class="display-1 fw-bolder text-white mb-3">Where Innovation <br> Meets Cultivation</h1>
+      <div class="mt-4">
+        <p class="text-white">Agriculture today blends technology with tradition and intelligent <br> models to create
+          productive and climate-resillent farming sysytems.</p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Foundation in Agriculture Section -->
+  <section data-aos="fade-up">
+    <div class="container foundation-sec bg-white rounded-4 py-5 my-5 ">
+      <div class="row align-items-center">
+        <div class="col-sm-12 col-md-6 mb-4">
+          <img src="{{ url_for('static', filename='assets/landingpage.jpg') }}" alt="Indoor Farming Setup" class="img-fluid rounded-4" height="100%"
+            width="100%"...>
+        </div>
+        <div class="col-sm-12 col-md-6 ps-lg-5">
+          <div class="text">
+            <h2 class="fw-bold mb-4 text-success">Foundation in Sustainable Agriculture </h2>
+            <p class="">
+              Agriculture is the indispensable foundation of human civilization, encompassing the art and science of
+              cultivating the soil, growing crops, and raising livestock to provide food, fiber, and essential raw
+              materials. Far more than just a source of sustenance, modern agriculture is a complex,
+              technologically-driven global industry that balances economic productivity with ecological stewardship. It
+              drives rural economies, influences international trade, and is crucial for global food security, making
+              its
+              sustainable development a primary challenge and continuous focus for innovators, scientists, and
+              policymakers worldwide.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Map Section -->
+  <section class="my-5" data-aos="fade-up">
+    <div class="map-container container p-4 rounded-4 bg-white">
+      <div class="row">
+        <div class="col-sm-12 col-md-7 col-lg-7">
+          <div class="visualization-area w-100">
+            <div class="controls">
+              <label for="crop-select">Select Crop:</label>
+              <select id="crop-select"></select>
+            </div>
+            <div class="map-and-legend-container w-100 pb-4">
+              <svg id="map"></svg>
+
+              <div id="top-producers">
+                <h3 class="fs-5 border-bottom border-muted pb-1 mb-1">Top 5 Producers for <span
+                    id="current-crop"></span></h3>
+                <ul id="top-list"></ul>
+              </div>
+
+
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-12 col-md-5 col-lg-5">
+
+          <ul class="my-5 justify-content-center map-text">
+            <li> <strong>Geographic Production View:</strong> The visualization translates complex agricultural
+              statistics into a clear
+              geographic pattern, instantly showing the relative level of production for a specific crop in every state
+              across India.</li>
+            <li> <strong>State Dominance Identification:</strong> It quickly identifies the agriculturally dominant
+              states—the leading
+              producers—for any selected commodity.</li>
+            <li> <strong>Dynamic Comparison:</strong> Users can instantly switch between different crops using the
+              dropdown menu, causing
+              the map to recalibrate and display the new production distribution across all states.</li>
+            <li> <strong>Effortless Analysis:</strong> The geographic display allows for immediate, effortless
+              comparisons of production
+              output from one state to another, highlighting regional strengths and weaknesses.</li>
+            <li> <strong>Top Producers Summary:</strong> A prominent list overlaid on the map isolates and displays the
+              Top 5 leading
+              producer states, providing their specific production values (in Lakh Tonnes) for a quick summary.</li>
+            <li> <strong>Supply Chain Insight:</strong> This tool helps users rapidly identify the key regions that are
+              most critical to
+              the national supply of the chosen commodity.</li>
+          </ul>
+        </div>
+      </div>
+
+
+    </div>
+  </section>
+
+
+  <!-- Footer Start -->
+ <footer class="footer p-3">
+    <div class="container mt-4">
+      <div class="row gy-3">
+        <div class="col-sm-12 col-md-3 col-lg-3">
+          <h1 class="text-capitalize fs-3">CROPSENSE</h1>
+          <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="" width="150px" height="150px">
+        </div>
+        <div class="col-sm-12 col-md-3 col-lg-3">
+          <h3 class="footer-tittle">Navigation</h3>
+          <ul class="list-unstyled">
+            <li class="mb-2 text-capitalize"><a href="{{ url_for('index') }}" class="text-decoration-none footer-link">Home</a>
+            </li>
+            <li class="mb-2 text-capitalize"><a href="{{ url_for('recommendations') }}"
+                class="text-decoration-none footer-link">Our AI</a></li>
+            <li class="mb-2 text-capitalize"><a href="{{ url_for('about_us') }}" class="text-decoration-none footer-link">About
+                Us</a></li>
+            <li class="mb-2 text-capitalize"><a href="{{ url_for('contact_us') }}" class="text-decoration-none footer-link">Contact
+                Us</a></li>
+          </ul>
+        </div>
+        <div class="col-sm-12 col-md-3 col-lg-3">
+          <h3 class="footer-tittle">Our Address</h3>
+          <ul class="list-unstyled">
+            <li class="mb-2 text-capitalize"><i class="bi me-2 bi-geo-alt-fill"></i>KPHB Colony, Hyderabad, India.</li>
+            <li class="mb-2 text-capitalize"><i class="bi me-2 bi-telephone-fill"></i>+91 50044-55-900</li>
+            <li class="mb-2 text-capitalize"><i class="bi me-2 bi-envelope-fill"></i>cropsense@help.us</li>
+          </ul>
+        </div>
+        <div class="col-sm-12 col-md-3 col-lg-3">
+          <h3 class="footer-tittle">Connect With Us</h3>
+          <div class="social-icons mb-3">
+            <a href="#"><i class="bi bi-facebook"></i></a>
+            <a href="#"><i class="bi bi-twitter"></i></a>
+            <a href="#"><i class="bi bi-linkedin"></i></a>
+            <a href="#"><i class="bi bi-instagram"></i></a>
+          </div>
+          <a href="{{ url_for('contact_us') }}" class="contact-btn-footer text-decoration-none">
+            Contact Us
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid p-3 border-top mt-4" style="border-color: #C8E6C9!important;">
+      <h4 class="lead text-center" style="color: #4C5A4C;">Copyright © 2025 CROPSENSE. All Rights Reserved
+      </h4>
+    </div>
+  </footer>
+  <!-- Footer End -->
+
+
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="{{ url_for('static', filename='mapscript.js') }}"></script>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>

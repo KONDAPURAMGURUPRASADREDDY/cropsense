@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About Us</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+</head>
+
+<body class="page-background">
+
+  <!-- NavBar Start -->
+  <nav class="navbar navbar-expand-lg sticky-top" id="mainNavbar">
+    <div class="container-fluid">
+       <a class="navbar-brand" href="#"><img src="{{ url_for('static', filename='assets/logo.png') }}" alt="cropsense" width="50px"
+          height="50px"></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+        aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse justify-content-end
+      " id="navbarNavDropdown">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link fw-bold  mx-3" href="{{ url_for('index') }}">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link fw-bold mx-3" href="{{ url_for('recommendations') }}">Our AI</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link fw-bold mx-3 active" href="{{ url_for('about_us') }}">About Us</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link fw-bold mx-3" href="{{ url_for('contact_us') }}">Contact Us</a>
+          </li>
+
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <!-- NavBar End -->
+
+
+  <!-- AboutUs Start -->
+  <section>
+    <div class="about-section my-5" data-aos="fade-up">
+
+
+      <section>
+        <div class="container bg-white rounded-4">
+          <div class="row mb-5 py-3 align-items-center" data-aos="fade-up">
+            <div class="col-sm-12 col-md-6 mb-4">
+              <img src="{{ url_for('static', filename='assets/about1.jpg') }}" alt="Indoor Farming Setup" class="w-100 rounded-4">
+            </div>
+            <div class="col-sm-12 col-md-6 ps-lg-5">
+              <div class="text">
+                <h2 class="fw-bold mb-4 text-success pb-2 mt-2">Vision and Mission</h2>
+                <p>
+                  CropSense was founded on the belief that technology can revolutionize farming to feed a growing world.
+                  Our
+                  mission is to empower farmers, from smallholder operations to large commercial enterprises, with
+                  actionable,
+                  precise data that transforms uncertainty into predictable success. We strive to be the leading partner
+                  in
+                  agricultural innovation, ensuring every decision made on the farm is backed by smart prediction,
+                  ultimately
+                  fostering a more sustainable, efficient, and profitable future for agriculture globally.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section >
+        <div class="container bg-white rounded-4">
+          <div class="row mb-5 py-3 align-items-center" data-aos="fade-up">
+            <div class="col-sm-12 col-md-6 order-md-1 order-2 pe-lg-5">
+              <div class="text">
+                <h2 class="fw-bold mb-4 text-success pb-2 mt-2">The CropSense Technology</h2>
+                <p>
+                  At the heart of our system lies proprietary technology combining IoT-driven data collection with
+                  sophisticated machine learning algorithms. We continuously ingest diverse datasets—including satellite
+                  imagery, hyper-local weather forecasts, and chemical soil analysis—to create dynamic predictive
+                  models.
+                  This
+                  advanced computational core allows CropSense to not only forecast potential yield but also accurately
+                  diagnose nutrient deficiencies and environmental stressors before they manifest as significant
+                  problems,
+                  ensuring our recommendations are highly accurate and timely.
+                </p>
+              </div>
+            </div>
+            <div class="col-sm-12 col-md-6 mb-4 order-md-2 order-1">
+              <img src="{{ url_for('static', filename='assets/about2 .jpg') }}" alt="Farm Technology" class="w-100 rounded-4">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="container bg-white rounded-4">
+          <div class="row mb-5 py-3 align-items-center" data-aos="fade-up">
+            <div class="col-sm-12 col-md-6 mb-4">
+              <img src="{{ url_for('static', filename='assets/about3.jpg') }}" alt="Data Prediction or High Yielding Crop" class="w-100 rounded-4">
+            </div>
+            <div class="col-sm-12 col-md-6 ps-lg-5">
+              <div class="text">
+                <h2 class="fw-bold mb-4 text-success pb-2 mt-2">Smart Prediction and Prescription</h2>
+                <p>
+                  Our core value proposition is the seamless integration of predictive analytics and prescriptive
+                  recommendations. CropSense moves beyond simple data reporting by simulating various scenarios to offer
+                  the
+                  single best action plan for yield enhancement. This includes precise recommendations for the type,
+                  quantity,
+                  and optimal timing of fertilizers, water, and other supplements, delivered directly to the user. This
+                  level
+                  of personalized, intelligent guidance translates directly into reduced waste, lower costs, and
+                  maximized
+                  crop health and productivity.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="container bg-white rounded-4">
+          <div class="row mb-5 py-3 align-items-center" data-aos="fade-up">
+            <div class="col-sm-12 col-md-6 order-md-1 order-2 pe-lg-5">
+              <div class="text">
+                <h2 class="fw-bold mb-4 text-success pb-2 mt-2">Commitment to the Farmer</h2>
+                <p>
+                  We understand the challenges faced by today's farmers, and our system is designed to be intuitive,
+                  accessible, and integrated into existing workflows. Our commitment extends beyond the software; we
+                  provide
+                  dedicated support and continuous system improvements based on real-world agricultural feedback. By
+                  putting
+                  powerful, complex technology into a user-friendly format, CropSense ensures that the benefits of
+                  precision
+                  agriculture are available to everyone committed to optimizing their land and enhancing their
+                  contribution
+                  to
+                  global food security.
+                </p>
+              </div>
+            </div>
+            <div class="col-sm-12 col-md-6 mb-4 order-md-2 order-1">
+              <img src="{{ url_for('static', filename='assets/about4.jpg') }}" alt="Farm Technology" class="w-100 rounded-4">
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </section>
+  <!-- AbouUs End -->
+
+  <!-- Footer Start -->
+ <footer class="footer p-3">
+    <div class="container mt-4">
+      <div class="row gy-3">
+        <div class="col-sm-12 col-md-3 col-lg-3">
+          <h1 class="text-capitalize fs-3">CROPSENSE</h1>
+          <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="" width="150px" height="150px">
+        </div>
+        <div class="col-sm-12 col-md-3 col-lg-3">
+          <h3 class="footer-tittle">Navigation</h3>
+          <ul class="list-unstyled">
+            <li class="mb-2 text-capitalize"><a href="{{ url_for('index') }}" class="text-decoration-none footer-link">Home</a>
+            </li>
+            <li class="mb-2 text-capitalize"><a href="{{ url_for('recommendations') }}"
+                class="text-decoration-none footer-link">Our AI</a></li>
+            <li class="mb-2 text-capitalize"><a href="{{ url_for('about_us') }}" class="text-decoration-none footer-link">About
+                Us</a></li>
+            <li class="mb-2 text-capitalize"><a href="{{ url_for('contact_us') }}" class="text-decoration-none footer-link">Contact
+                Us</a></li>
+          </ul>
+        </div>
+        <div class="col-sm-12 col-md-3 col-lg-3">
+          <h3 class="footer-tittle">Our Address</h3>
+          <ul class="list-unstyled">
+            <li class="mb-2 text-capitalize"><i class="bi me-2 bi-geo-alt-fill"></i>KPHB Colony, Hyderabad, India.</li>
+            <li class="mb-2 text-capitalize"><i class="bi me-2 bi-telephone-fill"></i>+91 50044-55-900</li>
+            <li class="mb-2 text-capitalize"><i class="bi me-2 bi-envelope-fill"></i>cropsense@help.us</li>
+          </ul>
+        </div>
+        <div class="col-sm-12 col-md-3 col-lg-3">
+          <h3 class="footer-tittle">Connect With Us</h3>
+          <div class="social-icons mb-3">
+            <a href="#"><i class="bi bi-facebook"></i></a>
+            <a href="#"><i class="bi bi-twitter"></i></a>
+            <a href="#"><i class="bi bi-linkedin"></i></a>
+            <a href="#"><i class="bi bi-instagram"></i></a>
+          </div>
+          <a href="{{ url_for('contact_us') }}" class="contact-btn-footer text-decoration-none">
+            Contact Us
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid p-3 border-top mt-4" style="border-color: #C8E6C9!important;">
+      <h4 class="lead text-center" style="color: #4C5A4C;">Copyright © 2025 CROPSENSE. All Rights Reserved
+      </h4>
+    </div>
+  </footer>
+  <!-- Footer End -->
+
+  
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-C6UaFmKq6iO3gV2/G0J1A9wV6B4J8Q3qR3N7vE8S0H5U1B2L1tP5n5e1yO2L2L2N"
+    crossorigin="anonymous"></script>
+</body>
+
+</html>
