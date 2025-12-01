@@ -353,13 +353,30 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         recommendationOutput.innerHTML = `
-          
-          <p><strong>SQI:</strong> ${data.sqi ?? "N/A"}</p>
-          <p><strong>CHI:</strong> ${data.phi ?? "N/A"}</p>
+    <p><strong>Soil Quality Index:</strong> ${data.sqi ?? "N/A"}</p>
+    <p><strong>Crop Health Index:</strong> ${data.phi ?? "N/A"}</p>
 
-          <h5 class="mt-4 fw-bold">Estimated Soil Nutrients</h5>
-          <pre>${JSON.stringify(data.nutrients, null, 2)}</pre>
-        `;
+    <h5 class="mt-4 fw-bold">Estimated Soil Nutrients</h5>
+
+    <ul style="line-height: 1.7;">
+        <li><strong>Nitrogen (N):</strong> ${data.nutrients?.Available_N_Kg_Ha ?? "N/A"} kg/ha</li>
+        <li><strong>Phosphorus (P):</strong> ${data.nutrients?.Available_P_Kg_Ha ?? "N/A"} kg/ha</li>
+        <li><strong>Potassium (K):</strong> ${data.nutrients?.Available_K_Kg_Ha ?? "N/A"} kg/ha</li>
+
+        <li><strong>Soil pH:</strong> ${data.nutrients?.Soil_Ph ?? "N/A"}</li>
+        <li><strong>Organic Carbon:</strong> ${data.nutrients?.Organic_Carbon_Percent ?? "N/A"}%</li>
+
+        <li><strong>Boron (B):</strong> ${data.nutrients?.Available_B_Ppm ?? "N/A"} ppm</li>
+        <li><strong>Copper (Cu):</strong> ${data.nutrients?.Available_Cu_Ppm ?? "N/A"} ppm</li>
+        <li><strong>Iron (Fe):</strong> ${data.nutrients?.Available_Fe_Ppm ?? "N/A"} ppm</li>
+        <li><strong>Manganese (Mn):</strong> ${data.nutrients?.Available_Mn_Ppm ?? "N/A"} ppm</li>
+        <li><strong>Zinc (Zn):</strong> ${data.nutrients?.Available_Zn_Ppm ?? "N/A"} ppm</li>
+
+        <li><strong>Electrical Conductivity (EC):</strong> ${data.nutrients?.Ec_Dsm ?? "N/A"} dS/m</li>
+        <li><strong>Sulphur (S):</strong> ${data.nutrients?.Available_S_Kg_Ha ?? "N/A"} kg/ha</li>
+    </ul>
+`;
+
       })
       .catch((error) => {
         recommendationOutput.innerHTML =

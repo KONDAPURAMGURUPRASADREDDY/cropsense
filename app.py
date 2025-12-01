@@ -218,13 +218,11 @@ def get_recommendation():
     treatment_input = {**req, **nutrient_defaults, "phi": phi}
     treatment_plan = generate_treatment_recommendations(treatment_input)
 
-    return jsonify({
-        "status": "success",
-        "sqi": sqi,
-        "phi": phi,
-        "nutrients": nutrient_defaults,
-        "treatment_plan": treatment_plan
-    })
+    return render_template(
+    "results.html",
+    nutrients=estimated_soil_nutrients
+)
+
 
 
 # -----------------------------
