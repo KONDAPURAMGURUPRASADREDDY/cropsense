@@ -108,31 +108,49 @@ function updateMap(selectedCrop) {
 
 function updateTopProducers(selectedCrop, currentCropData) {
   d3.select("#current-crop").text(selectedCrop);
-  const top5 = currentCropData
-    .filter((d) => d.statename !== "Others")
-    .map((d) => ({
-      statename: d.statename,
-      Production_Lakh_Tonnes: parseFloat(d["Production (Lakh Tonnes)"]) || 0,
-    }))
+
+  // --- Group by state and sum production ---
+  const stateProductionMap = new Map();
+
+  currentCropData.forEach(d => {
+    if (d.statename !== "Others") {
+      const production = parseFloat(d["Production (Lakh Tonnes)"]) || 0;
+
+      if (!stateProductionMap.has(d.statename)) {
+        stateProductionMap.set(d.statename, production);
+      } else {
+        stateProductionMap.set(
+          d.statename,
+          stateProductionMap.get(d.statename) + production
+        );
+      }
+    }
+  });
+
+  // Convert map to array
+  const aggregatedData = Array.from(stateProductionMap, ([statename, Production]) => ({
+    statename,
+    Production_Lakh_Tonnes: Production,
+  }));
+
+  // Sort and take top 5
+  const top5 = aggregatedData
     .sort((a, b) => b.Production_Lakh_Tonnes - a.Production_Lakh_Tonnes)
     .slice(0, 5);
+
   const list = d3.select("#top-list").html("");
 
   if (top5.length === 0 || top5[0].Production_Lakh_Tonnes === 0) {
-    list
-      .append("li")
-      .text("No significant production data available for this crop.");
-  } else {
-    top5.forEach((item, index) => {
-      const formattedProduction =
-        item.Production_Lakh_Tonnes.toFixed(2).toLocaleString();
-      list
-        .append("li")
-        .text(
-          `${index + 1}. ${item.statename}: ${formattedProduction} Lakh Tonnes`
-        );
-    });
+    list.append("li").text("No significant production data available for this crop.");
+    return;
   }
+
+  top5.forEach((item, index) => {
+    const formattedProduction = item.Production_Lakh_Tonnes.toFixed(2);
+    list.append("li").text(
+      `${index + 1}. ${item.statename}: ${formattedProduction} Lakh Tonnes`
+    );
+  });
 }
 
 function handleMouseOver(event, d) {
