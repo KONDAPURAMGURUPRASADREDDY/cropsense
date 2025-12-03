@@ -44,6 +44,10 @@ document.addEventListener("DOMContentLoaded", function () {
     pesticideQty: 0,
     usedFungicide: "No",
     fungSprays: 0,
+    rainfallTouched: false,
+    leafYellowTouched: false,
+    irrigationCountTouched: false,
+    fungSpraysTouched: false,
   };
 
   // -------------------------------------------
@@ -58,23 +62,17 @@ document.addEventListener("DOMContentLoaded", function () {
       return (
         inputs.irrigationType &&
         inputs.irrigationStatus &&
-        inputs.irrigationCount >= 0 &&
-        inputs.irrigationCount <= 25
+        inputs.irrigationCountTouched
       );
     if (stepIndex === 5)
       return (
         inputs.leafColor &&
         inputs.spots &&
         inputs.pests &&
-        inputs.leafYellowPercent >= 0 &&
-        inputs.leafYellowPercent <= 100
+        inputs.leafYellowTouched
       );
     if (stepIndex === 6)
-      return (
-        inputs.quickHumidity !== null &&
-        inputs.rainfall15 >= 0 &&
-        inputs.rainfall15 <= 150
-      );
+      return inputs.quickHumidity !== null && inputs.rainfallTouched;
     if (stepIndex === 7) {
       return (
         inputs.crop &&
@@ -99,6 +97,16 @@ document.addEventListener("DOMContentLoaded", function () {
       );
     }
     return false;
+  }
+
+  // auto-next-step
+
+  function autoNextStep() {
+    if (isStepComplete(currentStep)) {
+      if (currentStep < totalSteps - 1) {
+        showStep(currentStep + 1);
+      }
+    }
   }
 
   // -------------------------------------------
@@ -142,9 +150,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const isFinalStep = currentStep === totalSteps - 1;
     const ok = isStepComplete(currentStep);
 
-    getRecoBtn.classList.remove("d-none");
-    getRecoBtn.textContent = isFinalStep ? "Get Recommendations" : "Next Step";
-    getRecoBtn.disabled = !ok;
+    if (currentStep === totalSteps - 1) {
+      getRecoBtn.classList.remove("d-none"); // show only at last step
+    } else {
+      getRecoBtn.classList.add("d-none"); // hide for all other steps
+    }
   }
 
   // -------------------------------------------
@@ -157,12 +167,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
       inputs[field] = value;
 
-      box.closest(".selection-grid")
+      box
+        .closest(".selection-grid")
         ?.querySelectorAll(".img-selection")
         .forEach((el) => el.classList.remove("selected"));
 
       box.classList.add("selected");
+
       updateNavigationButton();
+      autoNextStep(); // 🔥 AUTO MOVE TO NEXT STEP
     });
   });
 
@@ -177,18 +190,22 @@ document.addEventListener("DOMContentLoaded", function () {
       if (name in inputs) inputs[name] = value;
 
       if (name === "usedFertilizer")
-        document.getElementById("fertilizerDetails")
+        document
+          .getElementById("fertilizerDetails")
           ?.classList.toggle("d-none", value === "No");
 
       if (name === "usedPesticide")
-        document.getElementById("pesticideDetails")
+        document
+          .getElementById("pesticideDetails")
           ?.classList.toggle("d-none", value === "No");
 
       if (name === "usedFungicide")
-        document.getElementById("fungicideDetails")
+        document
+          .getElementById("fungicideDetails")
           ?.classList.toggle("d-none", value === "No");
 
       updateNavigationButton();
+      autoNextStep();
     });
   });
 
@@ -199,6 +216,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const leafBox = document.getElementById("leafPercentBox");
 
   leafSlider?.addEventListener("input", () => {
+    inputs.leafYellowTouched = true;
     const value = Number(leafSlider.value);
     inputs.leafYellowPercent = value;
     leafBox.textContent = value + "%";
@@ -207,14 +225,21 @@ document.addEventListener("DOMContentLoaded", function () {
     )},255,0)`;
     updateNavigationButton();
   });
+  leafSlider?.addEventListener("change", () => {
+    autoNextStep();
+  });
 
   const rainSlider = document.getElementById("rainfallRange");
   const rainBox = document.getElementById("rainfallValueBox");
 
   rainSlider?.addEventListener("input", () => {
+    inputs.rainfallTouched = true;
     inputs.rainfall15 = Number(rainSlider.value);
     rainBox.textContent = `${rainSlider.value} mm`;
     updateNavigationButton();
+  });
+  rainSlider?.addEventListener("change", () => {
+    autoNextStep();
   });
 
   // -------------------------------------------
@@ -235,14 +260,21 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("fertQtyBox").textContent = e.target.value;
     updateNavigationButton();
   });
+  document.getElementById("fertQtyRange")?.addEventListener("change", () => {
+    autoNextStep();
+  });
 
   document.getElementById("pestQtyRange")?.addEventListener("input", (e) => {
     inputs.pesticideQty = Number(e.target.value);
     document.getElementById("pestQtyBox").textContent = e.target.value;
     updateNavigationButton();
   });
+  document.getElementById("pestQtyRange")?.addEventListener("change", () => {
+    autoNextStep();
+  });
 
   document.getElementById("irrigationCount")?.addEventListener("input", (e) => {
+    inputs.irrigationCountTouched = true;
     let val = Number(e.target.value);
     if (val < 0) val = 0;
     if (val > 25) val = 25;
@@ -250,13 +282,20 @@ document.addEventListener("DOMContentLoaded", function () {
     e.target.value = val;
     updateNavigationButton();
   });
+document.getElementById("irrigationCount")?.addEventListener("change", () => {
+    autoNextStep();
+  });
 
   document.getElementById("fungSprays")?.addEventListener("input", (e) => {
+    inputs.fungSpraysTouched = true;
     let val = Number(e.target.value);
     if (val < 0) val = 0;
     inputs.fungSprays = val;
     e.target.value = val;
     updateNavigationButton();
+  });
+document.getElementById("fungSprays")?.addEventListener("change", () => {
+    autoNextStep();
   });
 
   // -------------------------------------------
@@ -273,39 +312,50 @@ document.addEventListener("DOMContentLoaded", function () {
     // -------------------------------------------
     // FRONTEND → BACKEND MAPPING FIXED
     // -------------------------------------------
+    // ----------- FRONTEND → BACKEND PAYLOAD (use keys backend expects) -----------
     const js_to_flask_data = {
-      crop_name: inputs.crop,
-      previous_crop: inputs.previousCrop,
-      soil_type: inputs.soilType,
-      soil_texture: inputs.soilTexture,
+      // basic
+      crop: inputs.crop,
+      previousCrop: inputs.previousCrop,
 
-      stage_days: inputs.growthStage,
-      irrigation_type: inputs.irrigationType,
-      irrigation_status: inputs.irrigationStatus,
-      irrigation_count: inputs.irrigationCount,
+      // soil
+      soilType: inputs.soilType,
+      soilTexture: inputs.soilTexture,
 
-      leaf_color: inputs.leafColor,
-      leaf_yellow_percent: inputs.leafYellowPercent,
+      // growth / stage
+      growthStage: inputs.growthStage, // backend expects "growthStage" or "stage_days"
+      // irrigation
+      irrigationType: inputs.irrigationType,
+      irrigationStatus: inputs.irrigationStatus,
+      irrigationCount: Number(inputs.irrigationCount || 0),
+      irrigationLast7: 0,
+
+      // leaf & pests
+      leafColor: inputs.leafColor,
       spots: inputs.spots,
       pests: inputs.pests,
+      leafYellowPercent: Number(inputs.leafYellowPercent || 0),
 
-      rainfall: inputs.rainfall15,
+      // weather
+      rainfall: Number(inputs.rainfall15 || 0),
+      temperature: Number(inputs.temperature || 28),
+      humidity: Number(inputs.humidity || 60),
+      sunlight_hours: Number(inputs.sunlight_hours || 7),
 
-      used_fertilizer: inputs.usedFertilizer,
-      fertilizer_type: inputs.fertilizerType,
-      fertilizer_qty: inputs.fertilizerQty,
+      // fertilizer / pesticide / fungicide
+      usedFertilizer: inputs.usedFertilizer || "No",
+      fertilizerType: inputs.fertilizerType || "",
+      fertQty: Number(inputs.fertilizerQty || 0), // backend looks for last_fertilizer_dosage names too
 
-      used_pesticide: inputs.usedPesticide,
-      pesticide_type: inputs.pesticideType,
-      pesticide_qty: inputs.pesticideQty,
+      usedPesticide: inputs.usedPesticide || "No",
+      pesticideType: inputs.pesticideType || "",
+      pestQty: Number(inputs.pesticideQty || 0),
 
-      used_fungicide: inputs.usedFungicide,
-      fungicide_count: inputs.fungSprays,
+      usedFungicide: inputs.usedFungicide || "No",
+      fungSprays: Number(inputs.fungSprays || 0),
 
-      temperature: 28,
-      humidity: 60,
-      sunlight_hours: 7,
-      plant_height: 60,
+      // misc
+      plantHeight: Number(inputs.plantHeight || 60),
     };
 
     aiMainContent.style.display = "none";
@@ -335,56 +385,86 @@ document.addEventListener("DOMContentLoaded", function () {
     // -------------------------------------------
     // SEND DATA TO BACKEND
     // -------------------------------------------
-    fetch("/get_recommendation", {
+fetch("/get_recommendation", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(js_to_flask_data),
-    })
-      .then((response) => {
-        if (!response.ok)
-          throw new Error(`Server error: ${response.status}`);
-        return response.json();
-      })
-      .then((data) => {
-        if (data.status !== "success") {
+})
+  .then((response) => {
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
+      return response.json();
+  })
+  .then((data) => {
+      if (data.status !== "success") {
           recommendationOutput.innerHTML =
-            "❌ Error from Backend: " + (data.message || "Unknown error");
+              "❌ Error from Backend: " + (data.message || "Unknown error");
           return;
-        }
+      }
 
-        recommendationOutput.innerHTML = `
-    <p><strong>Soil Quality Index:</strong> ${data.sqi ?? "N/A"}</p>
-    <p><strong>Crop Health Index:</strong> ${data.phi ?? "N/A"}</p>
+      // Build Deficiency List HTML
+      let deficiencyHTML = "";
+      if (data.deficiencies && data.deficiencies.length > 0) {
+          deficiencyHTML += `<h5 class="mt-4 fw-bold">Detected Deficiencies:</h5><ul>`;
+          data.deficiencies.forEach((d) => {
+              deficiencyHTML += `<li><b>${d.deficiency}</b> (severity: ${d.severity})</li>`;
+          });
+          deficiencyHTML += `</ul>`;
+      } else {
+          deficiencyHTML = `<p>No major deficiencies detected.</p>`;
+      }
 
-    <h5 class="mt-4 fw-bold">Estimated Soil Nutrients</h5>
+      // Build Treatment Recommendations HTML
+      let treatmentHTML = "";
+      if (data.treatments && data.treatments.length > 0) {
+          treatmentHTML += `<h5 class="mt-4 fw-bold">Top Treatment Recommendations:</h5><ol>`;
+          data.treatments.forEach((t) => {
+              treatmentHTML += `
+                <li class="mb-2">
+                  <b>${t.Fertilizer}</b> – ${t.Dose}<br>
+                  <span class="text-muted">${t.Notes}</span>
+                </li>
+              `;
+          });
+          treatmentHTML += `</ol>`;
+      } else {
+          treatmentHTML = `<p>No treatment recommendations available.</p>`;
+      }
 
-    <ul style="line-height: 1.7;">
-        <li><strong>Nitrogen (N):</strong> ${data.nutrients?.Available_N_Kg_Ha ?? "N/A"} kg/ha</li>
-        <li><strong>Phosphorus (P):</strong> ${data.nutrients?.Available_P_Kg_Ha ?? "N/A"} kg/ha</li>
-        <li><strong>Potassium (K):</strong> ${data.nutrients?.Available_K_Kg_Ha ?? "N/A"} kg/ha</li>
+      // Main Output Block
+      recommendationOutput.innerHTML = `
+<div class="p-3 rounded">
 
-        <li><strong>Soil pH:</strong> ${data.nutrients?.Soil_Ph ?? "N/A"}</li>
-        <li><strong>Organic Carbon:</strong> ${data.nutrients?.Organic_Carbon_Percent ?? "N/A"}%</li>
+  <p class="mt-3">
+    <strong>Soil Quality Index (SQI):</strong>
+    <span class="fw-bold">${data.sqi_text}</span>
+    (${data.sqi.toFixed(2)}/5)
+  </p>
 
-        <li><strong>Boron (B):</strong> ${data.nutrients?.Available_B_Ppm ?? "N/A"} ppm</li>
-        <li><strong>Copper (Cu):</strong> ${data.nutrients?.Available_Cu_Ppm ?? "N/A"} ppm</li>
-        <li><strong>Iron (Fe):</strong> ${data.nutrients?.Available_Fe_Ppm ?? "N/A"} ppm</li>
-        <li><strong>Manganese (Mn):</strong> ${data.nutrients?.Available_Mn_Ppm ?? "N/A"} ppm</li>
-        <li><strong>Zinc (Zn):</strong> ${data.nutrients?.Available_Zn_Ppm ?? "N/A"} ppm</li>
+  <p>
+    <strong>Crop Health Index (CHI):</strong>
+    <span class="fw-bold">${data.phi_text}</span>
+    (${data.phi.toFixed(2)}/10)
+  </p>
 
-        <li><strong>Electrical Conductivity (EC):</strong> ${data.nutrients?.Ec_Dsm ?? "N/A"} dS/m</li>
-        <li><strong>Sulphur (S):</strong> ${data.nutrients?.Available_S_Kg_Ha ?? "N/A"} kg/ha</li>
-    </ul>
-`;
+  <p class="mt-4">
+    <strong>${data.final_message}</strong>
+  </p>
 
-      })
-      .catch((error) => {
-        recommendationOutput.innerHTML =
-          "Network Error: " + error.message;
-      });
+  <p class="mt-3">
+    <strong>Estimated N/P/K:</strong>
+    ${data.N}/${data.P}/${data.K} kg/ha
+  </p>
 
-    window.scrollTo({ top: resultPage.offsetTop, behavior: "smooth" });
+  <div class="mt-4">${deficiencyHTML}</div>
+  <div class="mt-4">${treatmentHTML}</div>
+
+</div>
+      `;
+  })
+  .catch((error) => {
+      recommendationOutput.innerHTML = "Network Error: " + error.message;
   });
+
 
   // ---------------------------------------------------------------------
   // DOWNLOAD PDF FUNCTION (unchanged)
@@ -412,5 +492,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   window.downloadRecommendationReport = downloadRecommendationReport;
-
 });
+
+}); 

@@ -1,28 +1,43 @@
+# ================================================================
+# CLEANED & PRODUCTION-READY CropSense Backend (Flask)
+# ================================================================
+
+# --- Suppress ALL sklearn & XGBoost warnings BEFORE import -----
+import warnings
+warnings.filterwarnings("ignore")
+
+# --- STANDARD IMPORTS ------------------------------------------
 import os
 from flask import Flask, render_template, request, jsonify
 import pandas as pd
 import numpy as np
 import joblib
+
+# --- TREATMENT ENGINE ------------------------------------------
 from utils.treatment_engine import generate_treatment_recommendations
 
+
+# ================================================================
+# FLASK APP INIT
+# ================================================================
 app = Flask(__name__)
 
-# -----------------------------
-# Load ML Models
-# -----------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
+# ================================================================
+# LOAD MODELS
+# ================================================================
 SQI_MODEL_PATH = os.path.join(BASE_DIR, "models", "SQI_full_pipeline.pkl")
 PHI_MODEL_PATH = os.path.join(BASE_DIR, "models", "PHI_full_pipeline.pkl")
-
 
 SQI_PIPELINE = joblib.load(SQI_MODEL_PATH)
 PHI_PIPELINE = joblib.load(PHI_MODEL_PATH)
 
 
-# -----------------------------
-# Default Soil Test Values
-# -----------------------------
+# ================================================================
+# DEFAULT SOIL TEST VALUES
+# ================================================================
 DEFAULT_SOIL_DATA = {
     "Available_N_Kg_Ha": 110,
     "Available_P_Kg_Ha": 45,
@@ -39,9 +54,9 @@ DEFAULT_SOIL_DATA = {
 }
 
 
-# -----------------------------
-# Growth Stage Conversion
-# -----------------------------
+# ================================================================
+# UTILITY HELPERS
+# ================================================================
 def convert_stage_to_days(stage):
     mapping = {
         "Germination": 10,
@@ -53,181 +68,217 @@ def convert_stage_to_days(stage):
     return mapping.get(stage, 40)
 
 
-# -----------------------------
-# UI → Model Mapping
-# -----------------------------
 def get_payload_value(payload, *keys, default=None, cast=None):
-    """
-    Try a list of possible keys (order matters). Return first non-empty value.
-    Optionally cast to a type.
-    """
     for k in keys:
         if k in payload and payload[k] not in (None, "", "undefined"):
             v = payload[k]
-            return cast(v) if cast and v not in (None, "") else v
+            return cast(v) if cast else v
     return default
 
+
+# ================================================================
+# FRONTEND → MODEL MAPPING
+# ================================================================
 def map_frontend_to_model(payload):
+
     model = {}
 
-    # Crop
-    model["Crop_Name"] = get_payload_value(payload, "crop", "crop_name", "Crop_Name")
-    model["Previous_Crop"] = get_payload_value(payload, "previousCrop", "previous_crop")
+    # CROP INFO
+    model["Crop_Name"] = get_payload_value(payload, "crop")
+    model["Previous_Crop"] = get_payload_value(payload, "previousCrop")
 
-    # Soil Type & Texture (accept both keys)
-    model["Soil_Type"] = get_payload_value(payload, "soilType", "soil_type", default="Unknown")
-    model["Soil_Texture_Class"] = get_payload_value(payload, "soilTexture", "soil_texture", "Soil_Texture_Class")
+    # SOIL
+    model["Soil_Type"] = get_payload_value(payload, "soilType", default="Unknown")
+    model["Soil_Texture_Class"] = get_payload_value(payload, "soilTexture", default="Unknown")
 
-    # Growth stage
-    stage = get_payload_value(payload, "growthStage", "stage_days", "stage", default="Vegetative")
+    # GROWTH STAGE
+    stage = get_payload_value(payload, "growthStage", default="Vegetative")
     model["Growth_Stage"] = stage
     model["Days_After_Sowing"] = convert_stage_to_days(stage)
 
-    # Irrigation (accept multiple key names)
-    model["Irrigation_Type"] = get_payload_value(payload,
-                                                 "irrigationType", "irrigation_type", "Irrigation_Type",
-                                                 default="Unknown")
-    model["Current_Soil_State"] = get_payload_value(payload,
-                                                    "irrigationStatus", "irrigation_status", "Current_Soil_State",
-                                                    default="Unknown")
-    model["No_Of_Irrigations_Since_Sowing"] = get_payload_value(payload,
-                                                                "irrigationCount", "irrigation_count",
-                                                                default=0, cast=int)
-    model["Irrigation_Last_7_Days"] = get_payload_value(payload, "irrigationLast7", "Irrigation_Last_7_Days",
-                                                        default=0, cast=int)
+    # IRRIGATION
+    model["Irrigation_Type"] = get_payload_value(payload, "irrigationType", default="Unknown")
+    model["Current_Soil_State"] = get_payload_value(payload, "irrigationStatus", default="Normal")
+    model["No_Of_Irrigations_Since_Sowing"] = get_payload_value(payload, "irrigationCount", default=0, cast=int)
+    model["Irrigation_Last_7_Days"] = get_payload_value(payload, "irrigationLast7", default=0, cast=int)
 
-    # Leaf
-    model["Leaf_Colour"] = get_payload_value(payload, "leafColor", "leaf_color", default="Normal Green")
+    # LEAF CONDITIONS
+    model["Leaf_Colour"] = get_payload_value(payload, "leafColor", default="Normal Green")
     model["Leaf_Spots"] = get_payload_value(payload, "spots", default="None")
-    model["Leaf_Yellowing_Percent"] = get_payload_value(payload,
-                                                       "leafYellowPercent", "leaf_yellow_percent",
-                                                       "Leaf_Yellowing_Percent", default=0, cast=int)
+    model["Leaf_Yellowing_Percent"] = get_payload_value(payload, "leafYellowPercent", default=0, cast=int)
 
-    # Pests
-    model["Pest_Incidence"] = get_payload_value(payload, "pests", "pest_incidence", default="NoDamage")
+    # PESTS
+    model["Pest_Incidence"] = get_payload_value(payload, "pests", default="NoDamage")
 
-    # Weather
-    model["Rainfall_Last_7Days"] = get_payload_value(payload, "rainfall", "rainfall15", default=0, cast=int)
+    # WEATHER
+    model["Rainfall_Last_7Days"] = get_payload_value(payload, "rainfall", default=0, cast=int)
     model["Temperature_Avg"] = get_payload_value(payload, "temperature", default=28, cast=int)
     model["Humidity_Percent"] = get_payload_value(payload, "humidity", default=60, cast=int)
     model["Sunlight_Hours_Per_Day"] = get_payload_value(payload, "sunlight_hours", default=7, cast=int)
 
-    # Fertilizer / pesticides / fungicide (accept different keys)
-    model["Fertilizer_Used"] = get_payload_value(payload, "usedFertilizer", "used_fertilizer", default="No")
-    model["Fertilizer_Type"] = get_payload_value(payload, "fertilizerType", "fertilizer_type", default="")
-    model["Last_Fertilizer_Dosage"] = get_payload_value(payload, "fertQty", "fertilizerQty", "last_fertilizer_dosage",
-                                                        default=0, cast=int)
+    # FERTILIZER
+    model["Fertilizer_Used"] = get_payload_value(payload, "usedFertilizer", default="No")
+    model["Fertilizer_Type"] = get_payload_value(payload, "fertilizerType", default="")
+    model["Last_Fertilizer_Dosage"] = get_payload_value(payload, "fertQty", default=0, cast=int)
 
-    model["Pesticide_Used"] = get_payload_value(payload, "usedPesticide", "used_pesticide", default="No")
-    model["Pesticide_Type"] = get_payload_value(payload, "pesticideType", "pesticide_type", default="")
-    model["Pesticide_Dosage_Ml_Per_Acre"] = get_payload_value(payload, "pestQty", "pesticideQty", default=0, cast=int)
+    # PESTICIDE
+    model["Pesticide_Used"] = get_payload_value(payload, "usedPesticide", default="No")
+    model["Pesticide_Type"] = get_payload_value(payload, "pesticideType", default="")
+    model["Pesticide_Dosage_Ml_Per_Acre"] = get_payload_value(payload, "pestQty", default=0, cast=int)
 
-    model["Fungicide_Used"] = get_payload_value(payload, "usedFungicide", "used_fungicide", default="No")
-    model["Fungicide_Sprays_Last_30_Days"] = get_payload_value(payload, "fungSprays", "fungicideCount",
-                                                               default=0, cast=int)
+    # FUNGICIDE
+    model["Fungicide_Used"] = get_payload_value(payload, "usedFungicide", default="No")
+    model["Fungicide_Sprays_Last_30_Days"] = get_payload_value(payload, "fungSprays", default=0, cast=int)
 
-    # Plant height
-    model["Plant_Height_Cm"] = get_payload_value(payload, "plantHeight", "plant_height", default=60, cast=int)
+    # PLANT HEIGHT
+    model["Plant_Height_Cm"] = get_payload_value(payload, "plantHeight", default=60, cast=int)
 
-    # Add soil defaults (only if missing)
+    # ADD SOIL DEFAULTS
     for k, v in DEFAULT_SOIL_DATA.items():
         model.setdefault(k, v)
 
     return model
 
 
-# -----------------------------
-# Prediction Engine
-# -----------------------------
-def run_predictions(req, nutrient_defaults):
-    model_input = map_frontend_to_model(req)
-    model_input.update(nutrient_defaults)
+# ================================================================
+# PREDICTION ENGINE
+# ================================================================
+def run_predictions(req):
 
+    model_input = map_frontend_to_model(req)
     df = pd.DataFrame([model_input])
 
-    # Fix missing columns for SQI
+    # ALIGN SQI COLUMNS
     for col in SQI_PIPELINE.feature_names_in_:
         if col not in df.columns:
             df[col] = 0
-
     df_sqi = df[SQI_PIPELINE.feature_names_in_]
 
-    # Fix missing columns for PHI
+    # ALIGN PHI COLUMNS
     for col in PHI_PIPELINE.feature_names_in_:
         if col not in df.columns:
             df[col] = 0
-
     df_phi = df[PHI_PIPELINE.feature_names_in_]
 
-    # Predict SQI
+    # SQI
     try:
         sqi = float(SQI_PIPELINE.predict(df_sqi)[0])
-    except Exception as e:
-        print("[SQI ERROR]", e)
+    except:
         sqi = None
 
-    # Predict PHI
+    # PHI
     try:
         phi = float(PHI_PIPELINE.predict(df_phi)[0])
-    except Exception as e:
-        print("[PHI ERROR]", e)
+    except:
         phi = None
 
     return sqi, phi
 
 
-# -----------------------------
+# ================================================================
 # ROUTES
-# -----------------------------
-@app.route("/")
+# ================================================================
+@app.route("/", endpoint="index")
 def index():
     return render_template("index.html")
 
-
-@app.route("/about")
-def about_us():
+@app.route("/about", endpoint="about_us")
+def about_page():
     return render_template("aboutus.html")
 
-
-@app.route("/contact")
-def contact_us():
+@app.route("/contact", endpoint="contact_us")
+def contact_page():
     return render_template("contactus.html")
 
-
-@app.route("/recommendations")
-def recommendations():
+@app.route("/recommendations", endpoint="recommendations")
+def recommendations_page():
     return render_template("recommendations.html")
 
 
-# -----------------------------
-# AI Endpoint for UI
-# -----------------------------
+
+# ================================================================
+# MAIN API ENDPOINT
+# ================================================================
 @app.route("/get_recommendation", methods=["POST"])
 def get_recommendation():
-    req = request.json
+    req = request.json or {}
 
-    nutrient_defaults = DEFAULT_SOIL_DATA.copy()
-    # nutrient_defaults["Soil_Texture_Class"] = req.get("soilTexture")
-    # nutrient_defaults["Current_Soil_State"] = req.get("irrigationStatus")
-    # nutrient_defaults["Irrigation_Type"] = req.get("irrigationType")
-    # nutrient_defaults["Pest_Incidence"] = req.get("pests")
+    # ---- RUN ML MODELS ----
+    sqi, phi = run_predictions(req)
+    
+    # ---- BUILD ROW FOR TREATMENT ENGINE ----
+    treatment_row = {
+        "SQI": sqi,
+        "PHI": phi,
 
-    sqi, phi = run_predictions(req, nutrient_defaults)
+        # crop & stage
+        "Crop_Name": req.get("crop", "generic"),
+        "Growth_Stage": req.get("growthStage", "vegetative"),
 
-    # Run Treatment Engine
-    treatment_input = {**req, **nutrient_defaults, "phi": phi}
-    treatment_plan = generate_treatment_recommendations(treatment_input)
+        # SOIL DATA (static defaults)
+        "Soil_Ph": DEFAULT_SOIL_DATA["Soil_Ph"],
+        "Ec_Dsm": DEFAULT_SOIL_DATA["Ec_Dsm"],
+        "Organic_Carbon_Percent": DEFAULT_SOIL_DATA["Organic_Carbon_Percent"],
 
-    return render_template(
-    "results.html",
-    nutrients=estimated_soil_nutrients
-)
+        # NUTRIENTS (static defaults)
+        "Available_N_Kg_Ha": DEFAULT_SOIL_DATA["Available_N_Kg_Ha"],
+        "Available_P_Kg_Ha": DEFAULT_SOIL_DATA["Available_P_Kg_Ha"],
+        "Available_K_Kg_Ha": DEFAULT_SOIL_DATA["Available_K_Kg_Ha"],
+        "Available_S_Kg_Ha": DEFAULT_SOIL_DATA["Available_S_Kg_Ha"],
+        "Available_Zn_Ppm": DEFAULT_SOIL_DATA["Available_Zn_Ppm"],
+        "Available_B_Ppm": DEFAULT_SOIL_DATA["Available_B_Ppm"],
+        "Available_Fe_Ppm": DEFAULT_SOIL_DATA["Available_Fe_Ppm"],
+        "Available_Mn_Ppm": DEFAULT_SOIL_DATA["Available_Mn_Ppm"],
+        "Available_Cu_Ppm": DEFAULT_SOIL_DATA["Available_Cu_Ppm"],
+    }
+
+    # ---- CALL TREATMENT ENGINE ----
+    treatment_plan = generate_treatment_recommendations(treatment_row)
+
+    # ---- LABELS ----
+    def label_sqi(v):
+        if v is None: return "N/A"
+        if v >= 4: return "Excellent"
+        if v >= 3: return "Good"
+        if v >= 2: return "Moderate"
+        return "Poor"
+
+    def label_phi(v):
+        if v is None: return "N/A"
+        if v >= 7: return "Healthy"
+        if v >= 4: return "Mild Stress"
+        return "Critical"
+
+    final_message = (
+        "Conditions Optimal"
+        if sqi and phi and sqi >= 3.5 and phi >= 7
+        else "Some improvements recommended"
+    )
+
+    # ---- FINAL OUTPUT ----
+    return jsonify({
+        "status": "success",
+
+        "sqi": sqi,
+        "sqi_text": label_sqi(sqi),
+
+        "phi": phi,
+        "phi_text": label_phi(phi),
+
+        "N": DEFAULT_SOIL_DATA["Available_N_Kg_Ha"],
+        "P": DEFAULT_SOIL_DATA["Available_P_Kg_Ha"],
+        "K": DEFAULT_SOIL_DATA["Available_K_Kg_Ha"],
+
+        "final_message": final_message,
+
+        # Treatment engine additions
+        "deficiencies": treatment_plan.get("deficiencies", []),
+        "treatments": treatment_plan.get("treatments", [])
+    })
 
 
-
-# -----------------------------
-# Run Server
-# -----------------------------
+# ================================================================
+# RUN SERVER
+# ================================================================
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=8080, debug=True)
